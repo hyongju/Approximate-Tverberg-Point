@@ -1,8 +1,7 @@
 function [tvb_pnt,tvb_prt] = tvb(p)
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Obtain Tverberg point Tverberg partition of maximum depth w/ 1D/2D/3D points
-% TVERBERG_ALL version 0.77
+% tvb.m
 % Coded by Hyongju Park (park334@illinois.edu, hyongju@gmail.com)
 % Date: Apr 15, 2015
 % Based upon the paper W.Mulzer and D. Werner, titled
@@ -16,85 +15,81 @@ function [tvb_pnt,tvb_prt] = tvb(p)
 % Output: Tverberg point/partition of depth ceil(n/2^d) 
 %       out1: a Tverberg point
 %       out2: Tverberg partition
+% 0.75:     initial release
+% 0.95 Sep, 2, 2015 : bugs are fixed 
 
 d = size(p,2);
 
 switch(d)
 
-    case 1  % d = 1
+    case 1  % d = 1, this is simply a median of a set of points 
 %%
         [B,IX] = sort(p(:,1)); % sort
         sB = size(B,1); % size of the array
         size1 = floor(sB/2); % floor
         % Obtain Tverberg partition (1D) with depth ceil(n / 2)
-        for i=1:size1
-            tver{i} = [IX(i) IX(sB-i+1)]; % two elements
+        for i=1:size1          
+            tvb_prt{i} = p([IX(i) IX(sB-i+1)],:); % a pair in each group
         end
-        if mod(sB,2) == 1
-            tver{i+1} = IX(i+1); % singleton
+        if mod(sB,2) == 1       % if the number of points is ODD
+        % there is a group with a single point
+            tvb_prt{i+1} = p(IX(i+1),:); % singleton
         end
         % Obtain Tverberg point (1D) with depth ceil(n / 2) == median
-        tverp = median(B); % obtain median        
-        out1 = tverp;  % tverberg point
-        out2 = tver;    % tverberg partition
+        tvb_pnt = median(B); % obtain median -----> Tverberg point       
         
     case 2  % d = 2
-%%        
-        [B,IX] = sort(p(:,1)); % sort
+%%      
+        [B,IX] = sort(p(:,1)); % sort 
         sB = size(B,1); % size of the array
         size1 = floor(sB/2); % floor
         % Obtain Tverberg partition (1D) with depth ceil(n / 2)
         for i=1:size1
-            tver{i} = [IX(i) IX(sB-i+1)]; % two elements
+            tver{i} = [IX(i) IX(sB-i+1)]; % a pair in each group
         end
         if mod(sB,2) == 1
-            tver{i+1} = IX(i+1); % singleton
+            tver{i+1} = IX(i+1); % if the number of points is ODD
+        % there is a group with a single point
         end
         % Obtain Tverberg point (1D) with depth ceil(n / 2) == median
-        tverp = median(B); % obtain median
+        tverp = median(B); % obtain median -----> Tverberg point: X coordinate   
         sT = size(tver,2); % size of partition (1D)
         % lifting to 2D
         for i = 1:sT
-           tst_pnt{i} =p(tver{i},1:2);
+           tst_pnt{i} =p(tver{i},1:2); % for each group with up to 2 points
            if size(tst_pnt{i},1) == 1
-               tver2(i) = tst_pnt{i}(1,2);
+               tver2(i) = tst_pnt{i}(1,2); % if it is a singleton take the value
            else
-               if tst_pnt{i}(1,1) == tst_pnt{i}(2,1)
+               if tst_pnt{i}(1,1) == tst_pnt{i}(2,1) % exclude slope at infinite
                    tver2(i) = mean(tst_pnt{i}(:,2));
                else
                    lineq = polyfit(tst_pnt{i}(:,1),tst_pnt{i}(:,2),1);
                    tver2(i) = lineq(1)*tverp + lineq(2);
+                   % find the intersection with the horizontal line
                end
            end
-
-        %    clear tst_pnt;
         end
         [~,IX2] = sort(tver2);
         sB2 = size(IX2,2);
         size2 = floor(sB2/2);
         for i=1:size2
             tver3{i} = [IX2(i) IX2(sB2-i+1)];
-            tver4{i} = [tver{IX2(i)} tver{IX2(sB2-i+1)}];
         end
         if mod(sB2,2) == 1
             tver3{i+1} = IX2(i+1);
-            tver4{i+1} = tver{IX2(i+1)};
         end
-        tverp2 = median(tver2);
-        tver_pnt = [tverp tverp2];
+        tverp2 = median(tver2); % tverberg point: Y coordinate
+        tvb_pnt = [tverp tverp2]; % tverberg point
         for i = 1:size(tver3,2)
-            if size(tver3{i},2) ==1
-                tverf{i} = tst_pnt{tver3{i}};
+            if size(tver3{i},2) == 1
+                tvb_prt{i} = tst_pnt{tver3{i}};
             else
-                tverf{i} = [tst_pnt{tver3{i}(1)};tst_pnt{tver3{i}(2)}];
+                tvb_prt{i} = [tst_pnt{tver3{i}(1)};tst_pnt{tver3{i}(2)}];
             end
-        end
-        
-        out1 = tver_pnt;
-        out2 = tverf;
+        end        
         
     case 3  % d = 3  
-%%        
+%%
         [B,IX] = sort(p(:,1)); % sort
         sB = size(B,1); % size of the array
         size1 = floor(sB/2); % floor
