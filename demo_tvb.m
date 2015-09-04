@@ -5,7 +5,7 @@ n = 50; % number of points
 d = 3; % dimension (default d = 2)
 p = rand(n,d); % generate n number of points in R^d
 
-[tvb_pnt, tvb_prt] = tvb_debug(p);
+[tvb_pnt, tvb_prt] = tvb(p);
 
 %%%%% PLOT
 [sp_x,sp_y,sp_z] = sphere; % make sphere
